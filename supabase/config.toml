@@ -1,0 +1,7 @@
+project_id = "ptgsirrrcrlumwfzguil"
+
+[functions.compliance-upsert]
+verify_jwt = false
+
+[functions.compliance-migrate]
+verify_jwt = false
