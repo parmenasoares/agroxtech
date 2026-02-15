@@ -17,7 +17,7 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Ryrox operational light theme (mobile-first, high legibility) */
-    --background: 0 0% 96%;
+    --backgrod:70 33% 96%70 33% 96% 96%;
     --foreground: 0 0% 9%;
 
     --card: 0 0% 98%;
@@ -161,4 +161,30 @@ All colors MUST be HSL.
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold tracking-tight;
   }
+  
+@layer base {
+  :root {
+    --background: 70 33% 96%;
+    --foreground: 117 30% 14%;
+    --card: 105 32% 93%;
+    --card-foreground: 117 30% 14%;
+    --primary: 113 40% 25%;
+    --primary-foreground: 70 33% 96%;
+    --secondary: 80 60% 35%;
+    --secondary-foreground: 70 33% 96%;
+    --muted: 105 32% 93%;
+    --muted-foreground: 117 30% 14%;
+    --accent: 74 100% 36%;
+    --accent-foreground: 117 30% 14%;
+    --ring: 113 40% 25%;
+    --sidebar-background: 70 33% 96%;
+    --sidebar-foreground: 117 30% 14%;
+    --sidebar-primary: 113 40% 25%;
+    --sidebar-primary-foreground: 70 33% 96%;
+    --sidebar-accent: 74 100% 36%;
+    --sidebar-accent-foreground: 117 30% 14%;
+    --sidebar-border: 105 32% 93%;
+  }
+}
+
 }
