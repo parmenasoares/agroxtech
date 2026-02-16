@@ -27,6 +27,18 @@ const LanguageSelect = () => {
           <p className="text-muted-foreground">Select your language / Selecione o idioma</p>
         </div>
 
+        <Card className="border-primary/30 bg-primary/5 p-4 text-left">
+          <p className="text-sm font-semibold text-primary">
+            O problema não é ter dinheiro. O problema é quando o dinheiro passa a ter você.
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Sabedoria financeira começa no coração. Quem gasta sem consciência vive refém da ansiedade.
+          </p>
+          <p className="mt-2 text-xs font-medium text-primary">
+            Soluções personalizadas para RYROX RENTAL. Cada linha de código é feita especial para os únicos.
+          </p>
+        </Card>
+
         <div className="space-y-3">
           <Button variant="outline" size="lg" className="w-full h-16 text-lg font-semibold" onClick={() => handleLanguageSelect('pt')}>
             🇵🇹 Português (Portugal)

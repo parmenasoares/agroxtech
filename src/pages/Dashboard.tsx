@@ -241,6 +241,19 @@ const Dashboard = () => {
       />
 
       <main className="container mx-auto px-4 py-6 sm:py-8 space-y-4">
+
+        <Card className="border-primary/30 bg-primary/5 p-4">
+          <p className="text-sm font-semibold text-primary">
+            O problema não é ter dinheiro. O problema é quando o dinheiro passa a ter você.
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            A forma como você lida com recursos revela valores, medos e confiança. Sabedoria financeira começa no coração. Quem gasta sem consciência vive refém da ansiedade.
+          </p>
+          <p className="mt-2 text-sm font-medium text-primary">
+            Soluções personalizadas para RYROX RENTAL. Cada linha de código é feita especial para os únicos.
+          </p>
+        </Card>
+
         {openActivity && (
           <Card className="p-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

@@ -43,13 +43,15 @@ const Login = () => {
         });
         if (error) throw error;
 
-        // Ensure base rows exist for new users (roles/compliance)
+        // Try to ensure base rows exist for users (roles/compliance),
+        // but do not block login if this background bootstrap fails.
         const [{ error: e1 }, { error: e2 }] = await Promise.all([
           supabase.rpc('ensure_current_user_row'),
           supabase.rpc('ensure_user_compliance_rows'),
         ]);
-        if (e1) throw e1;
-        if (e2) throw e2;
+        if (e1 || e2) {
+          console.warn('Post-login bootstrap warning:', { e1, e2 });
+        }
 
         toast({
           title: t('success'),

@@ -184,6 +184,36 @@ export type Database = {
           },
         ]
       }
+      damage_reports: {
+        Row: {
+          created_at: string
+          id: string
+          photo_url: string | null
+          report_text: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          photo_url?: string | null
+          report_text: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          photo_url?: string | null
+          report_text?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       machines: {
         Row: {
           brand: string | null
@@ -220,6 +250,45 @@ export type Database = {
           serial_number?: string | null
           status?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      order_requests: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          request_type: string
+          review_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          request_type: string
+          review_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          request_type?: string
+          review_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
