@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/hooks/useLanguage";
+import { getPublicErrorMessage } from "@/lib/publicErrors";
 
 const MAX_IMAGE_SIZE_MB = 10;
 
@@ -37,6 +39,7 @@ const parseLocalizedNumber = (input: string): number | null => {
 
 const Fuel = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [token, setToken] = useState<string | null>(null);
   const [value, setValue] = useState("");
@@ -142,7 +145,7 @@ const Fuel = () => {
           .upload(filePath, file, { upsert: true });
 
         if (uploadError) {
-          setFeedback("Não foi possível enviar a foto do abastecimento.", "error");
+          setFeedback(getPublicErrorMessage(uploadError, t), "error");
           return;
         }
 
@@ -161,7 +164,7 @@ const Fuel = () => {
       });
 
       if (error) {
-        setFeedback("Erro ao salvar abastecimento.", "error");
+        setFeedback(getPublicErrorMessage(error, t), "error");
       } else {
         setFeedback("Abastecimento registrado com sucesso!", "success");
         setToken(null);
@@ -171,7 +174,7 @@ const Fuel = () => {
       }
     } catch (err) {
       console.error(err);
-      setFeedback("Erro inesperado.", "error");
+      setFeedback(getPublicErrorMessage(err, t), "error");
     } finally {
       setIsSaving(false);
     }
