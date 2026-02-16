@@ -1,12 +1,18 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { ArrowLeft, Fuel as FuelIcon, ImagePlus, Ticket } from "lucide-react";
+
 import { BrandMark } from "@/components/BrandMark";
-import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 
 const MAX_IMAGE_SIZE_MB = 10;
+
+type MessageType = "success" | "error" | "info";
 
 const parseLocalizedNumber = (input: string): number | null => {
   const trimmed = input.trim();
@@ -39,19 +45,23 @@ const Fuel = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [messageType, setMessageType] = useState<MessageType>("info");
 
   const canSubmit = useMemo(() => {
     return Boolean(token) && value.trim().length > 0 && kmHours.trim().length > 0;
   }, [token, value, kmHours]);
 
+  const setFeedback = (text: string | null, type: MessageType = "info") => {
+    setMessage(text);
+    setMessageType(type);
+  };
+
   const handleGenerate = async () => {
     setIsGenerating(true);
     try {
-      const newToken = `${Date.now().toString().slice(-6)}${Math.floor(
-        Math.random() * 1000
-      )}`;
+      const newToken = `${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 1000)}`;
       setToken(newToken);
-      setMessage(null);
+      setFeedback("Token gerado. Complete os dados para registrar o abastecimento.", "info");
     } finally {
       setIsGenerating(false);
     }
@@ -64,25 +74,25 @@ const Fuel = () => {
     }
 
     if (!selectedFile.type.startsWith("image/")) {
-      setMessage("Envie apenas arquivos de imagem.");
+      setFeedback("Envie apenas arquivos de imagem.", "error");
       setFile(null);
       return;
     }
 
     const maxBytes = MAX_IMAGE_SIZE_MB * 1024 * 1024;
     if (selectedFile.size > maxBytes) {
-      setMessage(`A imagem deve ter no máximo ${MAX_IMAGE_SIZE_MB}MB.`);
+      setFeedback(`A imagem deve ter no máximo ${MAX_IMAGE_SIZE_MB}MB.`, "error");
       setFile(null);
       return;
     }
 
-    setMessage(null);
+    setFeedback(null);
     setFile(selectedFile);
   };
 
   const handleSubmit = async () => {
     if (!token) {
-      setMessage("Gere o token primeiro.");
+      setFeedback("Gere o token primeiro.", "error");
       return;
     }
 
@@ -90,12 +100,12 @@ const Fuel = () => {
     const parsedKmHours = parseLocalizedNumber(kmHours);
 
     if (parsedValue === null || parsedValue <= 0) {
-      setMessage("Informe um valor válido para o abastecimento.");
+      setFeedback("Informe um valor válido para o abastecimento.", "error");
       return;
     }
 
     if (parsedKmHours === null || parsedKmHours < 0) {
-      setMessage("Informe um valor válido para horas ou KM do painel.");
+      setFeedback("Informe um valor válido para horas ou KM do painel.", "error");
       return;
     }
 
@@ -119,7 +129,7 @@ const Fuel = () => {
         });
       }
 
-      setMessage(null);
+      setFeedback(null);
 
       let imageUrl: string | null = null;
 
@@ -132,13 +142,11 @@ const Fuel = () => {
           .upload(filePath, file, { upsert: true });
 
         if (uploadError) {
-          setMessage("Não foi possível enviar a foto do abastecimento.");
+          setFeedback("Não foi possível enviar a foto do abastecimento.", "error");
           return;
         }
 
-        const { data } = supabase.storage
-          .from("fuelings")
-          .getPublicUrl(filePath);
+        const { data } = supabase.storage.from("fuelings").getPublicUrl(filePath);
 
         imageUrl = data.publicUrl;
       }
@@ -153,9 +161,9 @@ const Fuel = () => {
       });
 
       if (error) {
-        setMessage("Erro ao salvar abastecimento.");
+        setFeedback("Erro ao salvar abastecimento.", "error");
       } else {
-        setMessage("Abastecimento registrado com sucesso!");
+        setFeedback("Abastecimento registrado com sucesso!", "success");
         setToken(null);
         setValue("");
         setKmHours("");
@@ -163,64 +171,97 @@ const Fuel = () => {
       }
     } catch (err) {
       console.error(err);
-      setMessage("Erro inesperado.");
+      setFeedback("Erro inesperado.", "error");
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background px-4 py-6 md:px-6">
+      <div className="mx-auto max-w-xl space-y-5">
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar
           </Button>
           <BrandMark />
         </div>
 
-        <Card className="p-6 space-y-4">
-          {!token && (
-            <Button className="w-full" onClick={handleGenerate} disabled={isGenerating}>
-              {isGenerating ? "Gerando..." : "GERAR TOKEN"}
-            </Button>
-          )}
+        <Card className="border-primary/15 shadow-sm">
+          <CardHeader className="space-y-3">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <FuelIcon className="h-5 w-5 text-primary" /> Registrar abastecimento
+            </CardTitle>
+            <CardDescription>
+              Gere o token e preencha os dados do abastecimento para enviar o registro.
+            </CardDescription>
+          </CardHeader>
 
-          {token && (
-            <div className="space-y-4">
-              <div className="text-center text-xl font-bold text-green-600">Token: {token}</div>
-
-              <input
-                type="text"
-                placeholder="Valor"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                className="w-full border rounded p-2"
-              />
-
-              <input
-                type="text"
-                placeholder="Horas ou KM Painel"
-                value={kmHours}
-                onChange={(e) => setKmHours(e.target.value)}
-                className="w-full border rounded p-2"
-              />
-
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)}
-                className="w-full"
-              />
-
-              <Button className="w-full" onClick={handleSubmit} disabled={isSaving || !canSubmit}>
-                {isSaving ? "Salvando..." : "Registrar Abastecimento"}
+          <CardContent className="space-y-4">
+            {!token && (
+              <Button className="w-full" onClick={handleGenerate} disabled={isGenerating}>
+                {isGenerating ? "Gerando..." : "Gerar token"}
               </Button>
-            </div>
-          )}
+            )}
 
-          {message && <div className="text-center text-sm text-muted-foreground">{message}</div>}
+            {token && (
+              <div className="space-y-4">
+                <div className="rounded-md border border-primary/20 bg-primary/5 px-4 py-3 text-center">
+                  <div className="mb-1 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                    <Ticket className="h-4 w-4" /> Token ativo
+                  </div>
+                  <p className="text-2xl font-bold tracking-wide text-primary">{token}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="fuel-value">Valor abastecido</Label>
+                  <Input
+                    id="fuel-value"
+                    type="text"
+                    placeholder="Ex.: 1250,75"
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="fuel-km-hours">Horas/KM do painel</Label>
+                  <Input
+                    id="fuel-km-hours"
+                    type="text"
+                    placeholder="Ex.: 651561"
+                    value={kmHours}
+                    onChange={(e) => setKmHours(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="fuel-image" className="flex items-center gap-2">
+                    <ImagePlus className="h-4 w-4" /> Foto do abastecimento (opcional)
+                  </Label>
+                  <Input
+                    id="fuel-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)}
+                  />
+                  {file && <p className="text-xs text-muted-foreground">Arquivo selecionado: {file.name}</p>}
+                </div>
+
+                <Button className="w-full" onClick={handleSubmit} disabled={isSaving || !canSubmit}>
+                  {isSaving ? "Salvando..." : "Registrar abastecimento"}
+                </Button>
+              </div>
+            )}
+
+            {message && (
+              <Alert variant={messageType === "error" ? "destructive" : "default"}>
+                <AlertTitle>{messageType === "success" ? "Sucesso" : messageType === "error" ? "Atenção" : "Informação"}</AlertTitle>
+                <AlertDescription>{message}</AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
         </Card>
       </div>
     </div>
