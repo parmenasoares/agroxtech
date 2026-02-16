@@ -1,0 +1,8 @@
+--- a/src/pages/Fuel.tsx
++++ b/src/pages/Fuel.tsx
+@@
+   return (
+     <div className="min-h-screen bg-background">
+       {/* ...conteúdo existente da página... */}
++    </div>
+   );
