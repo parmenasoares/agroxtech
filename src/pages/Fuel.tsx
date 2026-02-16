@@ -1,10 +1,26 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BrandMark } from "@/components/BrandMark";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+
+
+const parseLocalizedNumber = (input: string): number | null => {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const normalized = trimmed
+    .replace(/\s/g, "")
+    .replace(/\.(?=\d{3}(\D|$))/g, "")
+    .replace(",", ".");
+
+  const parsed = Number(normalized);
+  if (Number.isNaN(parsed)) return null;
+
+  return parsed;
+};
 
 const Fuel = () => {
   const navigate = useNavigate();
@@ -16,6 +32,10 @@ const Fuel = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const canSubmit = useMemo(() => {
+    return Boolean(token) && value.trim().length > 0 && kmHours.trim().length > 0;
+  }, [token, value, kmHours]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -36,15 +56,15 @@ const Fuel = () => {
       return;
     }
 
-    const normalizedValue = value.replace(",", ".").trim();
-    const normalizedKmHours = kmHours.replace(",", ".").trim();
+    const parsedValue = parseLocalizedNumber(value);
+    const parsedKmHours = parseLocalizedNumber(kmHours);
 
-    if (!normalizedValue || Number.isNaN(Number(normalizedValue))) {
+    if (parsedValue === null || parsedValue <= 0) {
       setMessage("Informe um valor válido para o abastecimento.");
       return;
     }
 
-    if (!normalizedKmHours || Number.isNaN(Number(normalizedKmHours))) {
+    if (parsedKmHours === null || parsedKmHours < 0) {
       setMessage("Informe um valor válido para horas ou KM do painel.");
       return;
     }
@@ -66,6 +86,8 @@ const Fuel = () => {
           { timeout: 5000 }
         );
       });
+
+      setMessage(null);
 
       let imageUrl: string | null = null;
 
@@ -93,8 +115,8 @@ const Fuel = () => {
 
       const { error } = await supabase.from("fuelings").insert({
         token,
-        value: Number(normalizedValue),
-        km_hours: Number(normalizedKmHours),
+        value: parsedValue,
+        km_hours: parsedKmHours,
         image_url: imageUrl,
         latitude: lat,
         longitude: lon,
@@ -166,6 +188,7 @@ const Fuel = () => {
 
               <input
                 type="file"
+                accept="image/*"
                 onChange={(e) =>
                   e.target.files && setFile(e.target.files[0])
                 }
@@ -175,7 +198,7 @@ const Fuel = () => {
               <Button
                 className="w-full"
                 onClick={handleSubmit}
-                disabled={isSaving}
+                disabled={isSaving || !canSubmit}
               >
                 {isSaving ? "Salvando..." : "Registrar Abastecimento"}
               </Button>
