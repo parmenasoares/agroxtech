@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BrandMark } from "@/components/BrandMark";
@@ -8,14 +7,12 @@ import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Fuel = () => {
-  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const [token, setToken] = useState<string | null>(null);
   const [value, setValue] = useState("");
   const [kmHours, setKmHours] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -39,6 +36,19 @@ const Fuel = () => {
       return;
     }
 
+    const normalizedValue = value.replace(",", ".").trim();
+    const normalizedKmHours = kmHours.replace(",", ".").trim();
+
+    if (!normalizedValue || Number.isNaN(Number(normalizedValue))) {
+      setMessage("Informe um valor válido para o abastecimento.");
+      return;
+    }
+
+    if (!normalizedKmHours || Number.isNaN(Number(normalizedKmHours))) {
+      setMessage("Informe um valor válido para horas ou KM do painel.");
+      return;
+    }
+
     setIsSaving(true);
 
     try {
@@ -50,7 +60,6 @@ const Fuel = () => {
           (pos) => {
             lat = pos.coords.latitude;
             lon = pos.coords.longitude;
-            setLocation({ lat: lat!, lon: lon! });
             resolve();
           },
           () => resolve(),
@@ -61,11 +70,17 @@ const Fuel = () => {
       let imageUrl: string | null = null;
 
       if (file) {
-        const filePath = `${token}-${file.name}`;
+        const extension = file.name.split(".").pop();
+        const filePath = `${token}-${Date.now()}${extension ? `.${extension}` : ""}`;
 
         const { error: uploadError } = await supabase.storage
           .from("fuelings")
-          .upload(filePath, file);
+          .upload(filePath, file, { upsert: true });
+
+        if (uploadError) {
+          setMessage("Não foi possível enviar a foto do abastecimento.");
+          return;
+        }
 
         if (!uploadError) {
           const { data } = supabase.storage
@@ -78,8 +93,8 @@ const Fuel = () => {
 
       const { error } = await supabase.from("fuelings").insert({
         token,
-        value,
-        km_hours: kmHours,
+        value: Number(normalizedValue),
+        km_hours: Number(normalizedKmHours),
         image_url: imageUrl,
         latitude: lat,
         longitude: lon,
