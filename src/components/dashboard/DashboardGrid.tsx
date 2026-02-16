@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import type { LucideIcon } from "lucide-react";
 
 export type DashboardBtn = {
-  icon: any;
+  icon: LucideIcon;
   label: string;
   path: string;
   variant: "default" | "secondary" | "destructive" | "outline" | "ghost" | "link";
@@ -26,9 +27,9 @@ const DashboardGrid = ({ items, onNavigate }: Props) => {
           >
             <Button
               variant={button.variant}
-              className="w-full h-28 sm:h-32 flex flex-col items-center justify-center gap-2 rounded-none text-base sm:text-lg font-semibold"
+              className="w-full h-32 sm:h-36 flex flex-col items-center justify-center gap-3 rounded-none text-base sm:text-lg font-semibold"
             >
-              <Icon className="h-9 w-9" />
+              <Icon className="h-11 w-11 sm:h-12 sm:w-12" />
               <span className="text-center leading-tight px-2">{button.label}</span>
             </Button>
           </Card>
