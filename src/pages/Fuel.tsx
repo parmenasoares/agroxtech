@@ -6,15 +6,22 @@ import { BrandMark } from "@/components/BrandMark";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+const MAX_IMAGE_SIZE_MB = 10;
 
 const parseLocalizedNumber = (input: string): number | null => {
   const trimmed = input.trim();
   if (!trimmed) return null;
 
-  const normalized = trimmed
-    .replace(/\s/g, "")
-    .replace(/\.(?=\d{3}(\D|$))/g, "")
-    .replace(",", ".");
+  const hasComma = trimmed.includes(",");
+  const hasDot = trimmed.includes(".");
+
+  let normalized = trimmed.replace(/\s/g, "");
+
+  if (hasComma && hasDot) {
+    normalized = normalized.replace(/\./g, "").replace(",", ".");
+  } else if (hasComma) {
+    normalized = normalized.replace(",", ".");
+  }
 
   const parsed = Number(normalized);
   if (Number.isNaN(parsed)) return null;
@@ -50,6 +57,29 @@ const Fuel = () => {
     }
   };
 
+  const handleFileSelect = (selectedFile: File | null) => {
+    if (!selectedFile) {
+      setFile(null);
+      return;
+    }
+
+    if (!selectedFile.type.startsWith("image/")) {
+      setMessage("Envie apenas arquivos de imagem.");
+      setFile(null);
+      return;
+    }
+
+    const maxBytes = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+    if (selectedFile.size > maxBytes) {
+      setMessage(`A imagem deve ter no máximo ${MAX_IMAGE_SIZE_MB}MB.`);
+      setFile(null);
+      return;
+    }
+
+    setMessage(null);
+    setFile(selectedFile);
+  };
+
   const handleSubmit = async () => {
     if (!token) {
       setMessage("Gere o token primeiro.");
@@ -75,17 +105,19 @@ const Fuel = () => {
       let lat: number | null = null;
       let lon: number | null = null;
 
-      await new Promise<void>((resolve) => {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            lat = pos.coords.latitude;
-            lon = pos.coords.longitude;
-            resolve();
-          },
-          () => resolve(),
-          { timeout: 5000 }
-        );
-      });
+      if ("geolocation" in navigator) {
+        await new Promise<void>((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              lat = pos.coords.latitude;
+              lon = pos.coords.longitude;
+              resolve();
+            },
+            () => resolve(),
+            { timeout: 5000 }
+          );
+        });
+      }
 
       setMessage(null);
 
@@ -104,13 +136,11 @@ const Fuel = () => {
           return;
         }
 
-        if (!uploadError) {
-          const { data } = supabase.storage
-            .from("fuelings")
-            .getPublicUrl(filePath);
+        const { data } = supabase.storage
+          .from("fuelings")
+          .getPublicUrl(filePath);
 
-          imageUrl = data.publicUrl;
-        }
+        imageUrl = data.publicUrl;
       }
 
       const { error } = await supabase.from("fuelings").insert({
@@ -142,7 +172,6 @@ const Fuel = () => {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-xl mx-auto space-y-6">
-
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -152,23 +181,15 @@ const Fuel = () => {
         </div>
 
         <Card className="p-6 space-y-4">
-
           {!token && (
-            <Button
-              className="w-full"
-              onClick={handleGenerate}
-              disabled={isGenerating}
-            >
+            <Button className="w-full" onClick={handleGenerate} disabled={isGenerating}>
               {isGenerating ? "Gerando..." : "GERAR TOKEN"}
             </Button>
           )}
 
           {token && (
             <div className="space-y-4">
-
-              <div className="text-center text-xl font-bold text-green-600">
-                Token: {token}
-              </div>
+              <div className="text-center text-xl font-bold text-green-600">Token: {token}</div>
 
               <input
                 type="text"
@@ -189,27 +210,17 @@ const Fuel = () => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) =>
-                  e.target.files && setFile(e.target.files[0])
-                }
+                onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)}
                 className="w-full"
               />
 
-              <Button
-                className="w-full"
-                onClick={handleSubmit}
-                disabled={isSaving || !canSubmit}
-              >
+              <Button className="w-full" onClick={handleSubmit} disabled={isSaving || !canSubmit}>
                 {isSaving ? "Salvando..." : "Registrar Abastecimento"}
               </Button>
             </div>
           )}
 
-          {message && (
-            <div className="text-center text-sm text-muted-foreground">
-              {message}
-            </div>
-          )}
+          {message && <div className="text-center text-sm text-muted-foreground">{message}</div>}
         </Card>
       </div>
     </div>
