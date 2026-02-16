@@ -11,10 +11,26 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/hooks/useLanguage";
 import { getPublicErrorMessage } from "@/lib/publicErrors";
+import type { TranslationKey } from "@/lib/i18n";
 
 const MAX_IMAGE_SIZE_MB = 10;
 
 type MessageType = "success" | "error" | "info";
+
+const getFuelFriendlyError = (err: unknown, t: (key: TranslationKey) => string): string => {
+  const fallback = getPublicErrorMessage(err, t);
+  const message = String((err as { message?: string } | null)?.message ?? "").toLowerCase();
+
+  if (message.includes("schema cache") || message.includes("relation") || message.includes("does not exist")) {
+    return "Módulo de abastecimento ainda não está configurado no banco. Contacte o administrador.";
+  }
+
+  if (message.includes("bucket") && message.includes("not")) {
+    return "Armazenamento de imagens não configurado. Contacte o administrador.";
+  }
+
+  return fallback;
+};
 
 const parseLocalizedNumber = (input: string): number | null => {
   const trimmed = input.trim();
@@ -145,7 +161,7 @@ const Fuel = () => {
           .upload(filePath, file, { upsert: true });
 
         if (uploadError) {
-          setFeedback(getPublicErrorMessage(uploadError, t), "error");
+          setFeedback(getFuelFriendlyError(uploadError, t), "error");
           return;
         }
 
@@ -164,7 +180,7 @@ const Fuel = () => {
       });
 
       if (error) {
-        setFeedback(getPublicErrorMessage(error, t), "error");
+        setFeedback(getFuelFriendlyError(error, t), "error");
       } else {
         setFeedback("Abastecimento registrado com sucesso!", "success");
         setToken(null);
@@ -174,7 +190,7 @@ const Fuel = () => {
       }
     } catch (err) {
       console.error(err);
-      setFeedback(getPublicErrorMessage(err, t), "error");
+      setFeedback(getFuelFriendlyError(err, t), "error");
     } finally {
       setIsSaving(false);
     }
