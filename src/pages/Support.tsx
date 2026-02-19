@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { BrandMark } from '@/components/BrandMark';
 import { ArrowLeft } from 'lucide-react';
 
+const DOUGLAS_SUPPORT_NUMBER = '+351 926 087 495';
 
 const Support = () => {
   const { t } = useLanguage();
@@ -22,8 +23,14 @@ const Support = () => {
         </div>
       </header>
       <main className="container mx-auto px-4 py-8">
-        <Card className="p-8 text-center">
-          <p className="text-muted-foreground">Module coming soon...</p>
+        <Card className="p-8 text-center space-y-3">
+          <p className="text-muted-foreground">Suporte direto com Douglas:</p>
+          <a
+            className="text-lg font-semibold text-primary underline-offset-4 hover:underline"
+            href={`tel:${DOUGLAS_SUPPORT_NUMBER.replace(/\s+/g, '')}`}
+          >
+            {DOUGLAS_SUPPORT_NUMBER}
+          </a>
         </Card>
       </main>
     </div>
