@@ -55,3 +55,17 @@ export function getPublicErrorMessage(err: unknown, t: TFn): string {
   // Default: generic message
   return generic;
 }
+
+export function isMissingBackendObjectError(err: unknown): boolean {
+  const anyErr = err as any;
+  const code = String(anyErr?.code ?? "");
+  const msg = String(anyErr?.message ?? anyErr?.error_description ?? "").toLowerCase();
+
+  return (
+    code === "42P01" ||
+    code === "PGRST205" ||
+    msg.includes("does not exist") ||
+    msg.includes("could not find the table") ||
+    msg.includes("bucket not found")
+  );
+}
