@@ -184,6 +184,233 @@ export type Database = {
           },
         ]
       }
+      damage_reports: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          latitude: number | null
+          location_text: string | null
+          longitude: number | null
+          photo_path: string | null
+          responded_at: string | null
+          responded_by: string | null
+          response: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          latitude?: number | null
+          location_text?: string | null
+          longitude?: number | null
+          photo_path?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          response?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          latitude?: number | null
+          location_text?: string | null
+          longitude?: number | null
+          photo_path?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          response?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "damage_reports_responded_by_fkey"
+            columns: ["responded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "damage_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fuelings: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          km_hours: number
+          latitude: number | null
+          longitude: number | null
+          token: string
+          updated_at: string
+          user_id: string | null
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          km_hours: number
+          latitude?: number | null
+          longitude?: number | null
+          token: string
+          updated_at?: string
+          user_id?: string | null
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          km_hours?: number
+          latitude?: number | null
+          longitude?: number | null
+          token?: string
+          updated_at?: string
+          user_id?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fuelings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_requests: {
+        Row: {
+          created_at: string
+          id: string
+          latitude: number | null
+          location_text: string | null
+          longitude: number | null
+          mechanic_response: string | null
+          photo_path: string | null
+          problem_description: string
+          responded_at: string | null
+          responded_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          location_text?: string | null
+          longitude?: number | null
+          mechanic_response?: string | null
+          photo_path?: string | null
+          problem_description: string
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          location_text?: string | null
+          longitude?: number | null
+          mechanic_response?: string | null
+          photo_path?: string | null
+          problem_description?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_requests_responded_by_fkey"
+            columns: ["responded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_requests: {
+        Row: {
+          created_at: string
+          decision_reason: string | null
+          description: string
+          id: string
+          request_type: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decision_reason?: string | null
+          description: string
+          id?: string
+          request_type: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decision_reason?: string | null
+          description?: string
+          id?: string
+          request_type?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       machines: {
         Row: {
           brand: string | null
