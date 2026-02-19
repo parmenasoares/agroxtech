@@ -28,7 +28,7 @@ const DashboardGrid = ({ items, onNavigate }: Props) => {
               variant={button.variant}
               className="w-full h-28 sm:h-32 flex flex-col items-center justify-center gap-2 rounded-none text-base sm:text-lg font-semibold"
             >
-              <Icon className="h-9 w-9" />
+              <Icon className="h-12 w-12" />
               <span className="text-center leading-tight px-2">{button.label}</span>
             </Button>
           </Card>
