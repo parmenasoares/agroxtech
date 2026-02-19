@@ -33,6 +33,14 @@ type OrdersAdapter = {
   buildInsert: (input: { userId: string; requestType: OrderRequestType; description: string }) => Record<string, unknown>;
 };
 
+const normalizeRequestType = (value: unknown): OrderRequestType => {
+  const normalized = String(value ?? "OUTROS").toUpperCase();
+  if (normalized === "FOLGA" || normalized === "FERIAS" || normalized === "FERRAMENTA" || normalized === "OUTROS") {
+    return normalized;
+  }
+  return "OUTROS";
+};
+
 const ORDERS_ADAPTERS: OrdersAdapter[] = [
   {
     table: "order_requests",
@@ -40,7 +48,7 @@ const ORDERS_ADAPTERS: OrdersAdapter[] = [
     mapRow: (row) => ({
       id: String(row.id),
       created_at: String(row.created_at),
-      request_type: String(row.request_type ?? "OUTROS") as OrderRequestType,
+      request_type: normalizeRequestType(row.request_type),
       description: String(row.description ?? ""),
       status: String(row.status ?? "PENDING"),
       decision_reason: (row.decision_reason as string | null) ?? null,
@@ -58,7 +66,7 @@ const ORDERS_ADAPTERS: OrdersAdapter[] = [
     mapRow: (row) => ({
       id: String(row.id),
       created_at: String(row.created_at),
-      request_type: String(row.type ?? "OUTROS") as OrderRequestType,
+      request_type: normalizeRequestType(row.type),
       description: String(row.description ?? ""),
       status: String(row.status ?? "PENDING"),
       decision_reason: (row.reason as string | null) ?? null,
@@ -68,6 +76,26 @@ const ORDERS_ADAPTERS: OrdersAdapter[] = [
       user_id: userId,
       type: requestType,
       description,
+    }),
+  },
+  {
+    table: "orders",
+    listSelect: "*",
+    mapRow: (row) => ({
+      id: String(row.id),
+      created_at: String(row.created_at ?? new Date().toISOString()),
+      request_type: normalizeRequestType(row.request_type ?? row.type ?? row.category),
+      description: String(row.description ?? row.details ?? ""),
+      status: String(row.status ?? "PENDING"),
+      decision_reason: (row.decision_reason as string | null) ?? (row.reason as string | null) ?? null,
+      reviewed_at: (row.reviewed_at as string | null) ?? null,
+    }),
+    buildInsert: ({ userId, requestType, description }) => ({
+      user_id: userId,
+      request_type: requestType,
+      type: requestType,
+      description,
+      details: description,
     }),
   },
 ];
@@ -105,21 +133,25 @@ const Orders = () => {
     setIsLoadingRequests(true);
     try {
       for (const adapter of ORDERS_ADAPTERS) {
-        const { data, error } = await (supabase as any)
-          .from(adapter.table)
-          .select(adapter.listSelect)
-          .eq("user_id", uid)
-          .order("created_at", { ascending: false });
+        const selectCandidates = [adapter.listSelect, "*"];
 
-        if (!error) {
-          setActiveAdapter(adapter);
-          setModuleUnavailable(false);
-          setRequests(((data ?? []) as Record<string, unknown>[]).map(adapter.mapRow));
-          return;
-        }
+        for (const selectExpr of selectCandidates) {
+          const { data, error } = await (supabase as any)
+            .from(adapter.table)
+            .select(selectExpr)
+            .eq("user_id", uid)
+            .order("created_at", { ascending: false });
 
-        if (!isMissingBackendObjectError(error)) {
-          throw error;
+          if (!error) {
+            setActiveAdapter(adapter);
+            setModuleUnavailable(false);
+            setRequests(((data ?? []) as Record<string, unknown>[]).map(adapter.mapRow));
+            return;
+          }
+
+          if (!isMissingBackendObjectError(error)) {
+            throw error;
+          }
         }
       }
 
