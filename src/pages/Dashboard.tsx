@@ -13,6 +13,10 @@ import {
   Headset,
   ShieldCheck,
   Timer,
+  Users,
+  Database,
+  Tractor,
+  BarChart3,
 } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardGrid, { type DashboardBtn } from "@/components/dashboard/DashboardGrid";
@@ -219,6 +223,13 @@ const Dashboard = () => {
 
     if (isAdmin) {
       base.unshift({
+        icon: Database,
+        label: t("masterData"),
+        path: "/admin/master-data",
+        variant: "outline",
+      });
+
+      base.unshift({
         icon: ShieldCheck,
         label: t("adminValidation"),
         path: "/admin/activities",
@@ -226,8 +237,38 @@ const Dashboard = () => {
       });
     }
 
+    if (isSuperAdmin) {
+      base.unshift({
+        icon: Users,
+        label: t("userManagement"),
+        path: "/admin/users",
+        variant: "outline",
+      });
+
+      base.unshift({
+        icon: Tractor,
+        label: t("machinesManagement"),
+        path: "/admin/machines",
+        variant: "outline",
+      });
+
+      base.unshift({
+        icon: BarChart3,
+        label: t("adminDashboard"),
+        path: "/admin/dashboard",
+        variant: "outline",
+      });
+
+      base.unshift({
+        icon: ShieldCheck,
+        label: t("rolesAudit"),
+        path: "/admin/roles-audit",
+        variant: "outline",
+      });
+    }
+
     return base;
-  }, [isAdmin, isCoordinator, t]);
+  }, [isAdmin, isCoordinator, isSuperAdmin, t]);
 
   return (
     <div className="min-h-screen bg-background">
