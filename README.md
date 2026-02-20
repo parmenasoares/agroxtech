@@ -71,3 +71,27 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## Deploy na Vercel com Supabase (sem perder dados)
+
+Se o projeto já está conectado na Vercel e no Supabase, use este fluxo para manter os dados existentes e validar antes de publicar:
+
+1. **Confirme variáveis na Vercel**
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`
+
+2. **Aplique as migrations no Supabase** (no projeto correto)
+   - `supabase/migrations/20260218101500_add_maintenance_requests.sql`
+   - `supabase/migrations/20260218104500_add_order_requests.sql`
+   - `supabase/migrations/20260219103000_add_damage_reports_and_fuelings.sql`
+   - `supabase/migrations/20260220193000_harden_module_compatibility.sql`
+
+3. **Rode validação automática local**
+
+```sh
+npm run validate:all
+```
+
+4. **Faça redeploy na Vercel** após as migrations.
+
+> Importante: redeploy na Vercel sozinho atualiza apenas frontend. Para corrigir “Módulo em configuração”, o Supabase também precisa estar atualizado com as migrations.
