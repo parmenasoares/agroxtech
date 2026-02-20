@@ -11,6 +11,18 @@ import { getPublicErrorMessage } from "@/lib/publicErrors";
 import { Loader2 } from "lucide-react";
 import logoAgroX from "@/assets/agro-x-logo.png";
 
+const isRecoverableBootstrapError = (err: unknown) => {
+  const anyErr = err as any;
+  const code = String(anyErr?.code ?? "");
+  const message = String(anyErr?.message ?? anyErr?.error_description ?? "").toLowerCase();
+
+  return (
+    code === "42883" || // function does not exist
+    code === "PGRST202" || // rpc not found in schema cache
+    code === "42501" || // insufficient privileges
+    (message.includes("function") && message.includes("does not exist"))
+  );
+};
 
 const Login = () => {
   const { t } = useLanguage();
@@ -44,12 +56,21 @@ const Login = () => {
         if (error) throw error;
 
         // Ensure base rows exist for new users (roles/compliance)
-        const [{ error: e1 }, { error: e2 }] = await Promise.all([
+        const bootstrapResults = await Promise.allSettled([
           supabase.rpc('ensure_current_user_row'),
           supabase.rpc('ensure_user_compliance_rows'),
         ]);
-        if (e1) throw e1;
-        if (e2) throw e2;
+
+        const nonRecoverableBootstrapError = bootstrapResults
+          .map((result) => {
+            if (result.status === "rejected") return result.reason;
+            return result.value?.error ?? null;
+          })
+          .find((error) => error && !isRecoverableBootstrapError(error));
+
+        if (nonRecoverableBootstrapError) {
+          throw nonRecoverableBootstrapError;
+        }
 
         toast({
           title: t('success'),
