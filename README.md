@@ -96,6 +96,19 @@ npm run validate:all
 
 > Importante: redeploy na Vercel sozinho atualiza apenas frontend. Para corrigir “Módulo em configuração”, o Supabase também precisa estar atualizado com as migrations.
 
+## Ordem exata para SQL Editor (copiar/colar) + checklist OK/FAIL
+
+Para facilitar sua operação, existe um runbook pronto com a sequência completa:
+
+- `supabase/sql_editor_deploy_runbook.sql`
+
+Esse arquivo contém:
+- baseline (antes),
+- ordem de execução das migrations,
+- checklist estrutural,
+- checklist por módulo,
+- critério objetivo de **OK/FAIL** em cada etapa.
+
 ## Garantia de dados existentes (usuários e níveis)
 
 As migrations deste projeto são **não destrutivas** para usuários e níveis:
