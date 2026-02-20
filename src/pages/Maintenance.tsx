@@ -4,6 +4,7 @@ import { ArrowLeft, Camera, Loader2, MapPin, MessageSquareText, Wrench } from "l
 import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureCurrentUserRowBestEffort } from "@/lib/userBootstrap";
 import { getPublicErrorMessage, isBackendCompatibilityError, isMissingBackendObjectError } from "@/lib/publicErrors";
 import { BrandMark } from "@/components/BrandMark";
 import { Button } from "@/components/ui/button";
@@ -111,21 +112,25 @@ const Maintenance = () => {
     setIsLoadingRequests(true);
     try {
       for (const adapter of MAINTENANCE_ADAPTERS) {
-        const { data, error } = await (supabase as any)
-          .from(adapter.table)
-          .select(adapter.listSelect)
-          .eq("user_id", uid)
-          .order("created_at", { ascending: false });
+        const selectCandidates = [adapter.listSelect, "*"];
 
-        if (!error) {
-          setActiveAdapter(adapter);
-          setModuleUnavailable(false);
-          setRequests(((data ?? []) as Record<string, unknown>[]).map(adapter.mapRow));
-          return;
-        }
+        for (const selectExpr of selectCandidates) {
+          const { data, error } = await (supabase as any)
+            .from(adapter.table)
+            .select(selectExpr)
+            .eq("user_id", uid)
+            .order("created_at", { ascending: false });
 
-        if (!isBackendCompatibilityError(error)) {
-          throw error;
+          if (!error) {
+            setActiveAdapter(adapter);
+            setModuleUnavailable(false);
+            setRequests(((data ?? []) as Record<string, unknown>[]).map(adapter.mapRow));
+            return;
+          }
+
+          if (!isBackendCompatibilityError(error)) {
+            throw error;
+          }
         }
       }
 
@@ -158,6 +163,7 @@ const Maintenance = () => {
         return;
       }
 
+      await ensureCurrentUserRowBestEffort();
       setUserId(user.id);
       await loadRequests(user.id);
     };

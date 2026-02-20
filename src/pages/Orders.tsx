@@ -4,6 +4,7 @@ import { ArrowLeft, ClipboardList, Loader2, Send } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureCurrentUserRowBestEffort } from "@/lib/userBootstrap";
 import { getPublicErrorMessage, isBackendCompatibilityError } from "@/lib/publicErrors";
 import { BrandMark } from "@/components/BrandMark";
 import { Button } from "@/components/ui/button";
@@ -184,6 +185,7 @@ const Orders = () => {
         return;
       }
 
+      await ensureCurrentUserRowBestEffort();
       setUserId(user.id);
       await loadRequests(user.id);
     };

@@ -8,21 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { getPublicErrorMessage } from "@/lib/publicErrors";
+import { ensureCurrentUserRowBestEffort } from "@/lib/userBootstrap";
 import { Loader2 } from "lucide-react";
 import logoAgroX from "@/assets/agro-x-logo.png";
-
-const isRecoverableBootstrapError = (err: unknown) => {
-  const anyErr = err as any;
-  const code = String(anyErr?.code ?? "");
-  const message = String(anyErr?.message ?? anyErr?.error_description ?? "").toLowerCase();
-
-  return (
-    code === "42883" || // function does not exist
-    code === "PGRST202" || // rpc not found in schema cache
-    code === "42501" || // insufficient privileges
-    (message.includes("function") && message.includes("does not exist"))
-  );
-};
 
 const Login = () => {
   const { t } = useLanguage();
@@ -56,20 +44,12 @@ const Login = () => {
         if (error) throw error;
 
         // Ensure base rows exist for new users (roles/compliance)
-        const bootstrapResults = await Promise.allSettled([
-          supabase.rpc('ensure_current_user_row'),
-          supabase.rpc('ensure_user_compliance_rows'),
-        ]);
+        await ensureCurrentUserRowBestEffort();
 
-        const nonRecoverableBootstrapError = bootstrapResults
-          .map((result) => {
-            if (result.status === "rejected") return result.reason;
-            return result.value?.error ?? null;
-          })
-          .find((error) => error && !isRecoverableBootstrapError(error));
-
-        if (nonRecoverableBootstrapError) {
-          throw nonRecoverableBootstrapError;
+        const { error: complianceError } = await supabase.rpc('ensure_user_compliance_rows');
+        if (complianceError) {
+          // Optional bootstrap RPC: do not block login when unavailable/restricted
+          console.warn('ensure_user_compliance_rows skipped', complianceError);
         }
 
         toast({
