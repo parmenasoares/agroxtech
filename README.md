@@ -95,3 +95,25 @@ npm run validate:all
 4. **Faça redeploy na Vercel** após as migrations.
 
 > Importante: redeploy na Vercel sozinho atualiza apenas frontend. Para corrigir “Módulo em configuração”, o Supabase também precisa estar atualizado com as migrations.
+
+## Garantia de dados existentes (usuários e níveis)
+
+As migrations deste projeto são **não destrutivas** para usuários e níveis:
+
+- Não existe `DROP TABLE` para `public.users` ou `public.user_roles`.
+- O backfill de usuários usa `INSERT ... ON CONFLICT DO NOTHING`, ou seja, não sobrescreve usuários existentes.
+- As roles (níveis) em `public.user_roles` são preservadas; nada apaga os registros atuais durante o fluxo de deploy normal.
+
+Para auditar isso no seu projeto Supabase antes/depois do deploy, rode:
+
+```sql
+-- arquivo pronto no repositório
+-- supabase/verify_deploy_readiness.sql
+```
+
+Resumo prático:
+1. Aplicar migrations no Supabase.
+2. Rodar `supabase/verify_deploy_readiness.sql` no SQL Editor.
+3. Rodar `npm run validate:all`.
+4. Fazer deploy/redeploy na Vercel.
+
