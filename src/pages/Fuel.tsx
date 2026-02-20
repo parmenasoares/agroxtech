@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/hooks/useLanguage";
-import { getPublicErrorMessage, isMissingBackendObjectError } from "@/lib/publicErrors";
+import { getPublicErrorMessage, isBackendCompatibilityError, isMissingBackendObjectError } from "@/lib/publicErrors";
 
 type MessageType = "success" | "error" | "info";
 
@@ -136,7 +136,7 @@ const Fuel = () => {
         }
 
         insertError = error;
-        if (!isMissingBackendObjectError(error)) {
+        if (!isBackendCompatibilityError(error)) {
           throw error;
         }
       }

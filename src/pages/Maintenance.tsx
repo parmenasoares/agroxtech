@@ -4,7 +4,7 @@ import { ArrowLeft, Camera, Loader2, MapPin, MessageSquareText, Wrench } from "l
 import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { getPublicErrorMessage, isMissingBackendObjectError } from "@/lib/publicErrors";
+import { getPublicErrorMessage, isBackendCompatibilityError, isMissingBackendObjectError } from "@/lib/publicErrors";
 import { BrandMark } from "@/components/BrandMark";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -124,7 +124,7 @@ const Maintenance = () => {
           return;
         }
 
-        if (!isMissingBackendObjectError(error)) {
+        if (!isBackendCompatibilityError(error)) {
           throw error;
         }
       }
@@ -244,7 +244,7 @@ const Maintenance = () => {
         }
 
         insertError = error;
-        if (!isMissingBackendObjectError(error)) {
+        if (!isBackendCompatibilityError(error)) {
           throw error;
         }
       }

@@ -73,3 +73,14 @@ export function isMissingBackendObjectError(err: unknown): boolean {
     isMissingBucket
   );
 }
+
+export function isBackendCompatibilityError(err: unknown): boolean {
+  const anyErr = err as any;
+  const code = String(anyErr?.code ?? "");
+  const msg = String(anyErr?.message ?? anyErr?.error_description ?? "").toLowerCase();
+
+  const isMissingColumn = code === "42703" || msg.includes("column") && msg.includes("does not exist");
+  const isSchemaCacheColumn = code === "PGRST204" || msg.includes("schema cache") && msg.includes("column");
+
+  return isMissingBackendObjectError(err) || isMissingColumn || isSchemaCacheColumn;
+}

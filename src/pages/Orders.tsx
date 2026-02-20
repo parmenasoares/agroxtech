@@ -4,7 +4,7 @@ import { ArrowLeft, ClipboardList, Loader2, Send } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { getPublicErrorMessage, isMissingBackendObjectError } from "@/lib/publicErrors";
+import { getPublicErrorMessage, isBackendCompatibilityError } from "@/lib/publicErrors";
 import { BrandMark } from "@/components/BrandMark";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -149,7 +149,7 @@ const Orders = () => {
             return;
           }
 
-          if (!isMissingBackendObjectError(error)) {
+          if (!isBackendCompatibilityError(error)) {
             throw error;
           }
         }
@@ -218,7 +218,7 @@ const Orders = () => {
         }
 
         insertError = error;
-        if (!isMissingBackendObjectError(error)) {
+        if (!isBackendCompatibilityError(error)) {
           throw error;
         }
       }
