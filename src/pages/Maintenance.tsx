@@ -66,6 +66,28 @@ const MAINTENANCE_ADAPTERS: MaintenanceAdapter[] = [
     }),
   },
   {
+    table: "maintenance_requests",
+    listSelect: "id, created_at, description, location_text, status, response, responded_at, photo_path",
+    mapRow: (row) => ({
+      id: String(row.id),
+      created_at: String(row.created_at),
+      problem_description: String(row.description ?? ""),
+      location_text: (row.location_text as string | null) ?? null,
+      status: String(row.status ?? "ABERTA"),
+      mechanic_response: (row.response as string | null) ?? null,
+      responded_at: (row.responded_at as string | null) ?? null,
+      photo_path: (row.photo_path as string | null) ?? null,
+    }),
+    buildInsert: ({ userId, problemDescription, locationText, latitude, longitude, photoPath }) => ({
+      user_id: userId,
+      description: problemDescription,
+      location_text: locationText || null,
+      latitude,
+      longitude,
+      photo_path: photoPath,
+    }),
+  },
+  {
     table: "maintenance",
     listSelect: "id, created_at, description, location_text, status, response, responded_at, photo_path",
     mapRow: (row) => ({
@@ -240,18 +262,41 @@ const Maintenance = () => {
 
       let insertError: unknown = null;
       for (const adapter of adaptersToTry) {
-        const { error } = await (supabase as any).from(adapter.table).insert(adapter.buildInsert(baseInput));
+        const payloadCandidates = [
+          adapter.buildInsert(baseInput),
+          {
+            user_id: userId,
+            problem_description: problemDescription.trim(),
+            description: problemDescription.trim(),
+            location_text: locationText.trim() || null,
+            photo_path: photoPath,
+          },
+          {
+            user_id: userId,
+            problem_description: problemDescription.trim(),
+            description: problemDescription.trim(),
+            location_text: locationText.trim() || null,
+          },
+        ];
 
-        if (!error) {
-          setActiveAdapter(adapter);
-          setModuleUnavailable(false);
-          insertError = null;
-          break;
+        for (const payload of payloadCandidates) {
+          const { error } = await (supabase as any).from(adapter.table).insert(payload);
+
+          if (!error) {
+            setActiveAdapter(adapter);
+            setModuleUnavailable(false);
+            insertError = null;
+            break;
+          }
+
+          insertError = error;
+          if (!isBackendCompatibilityError(error)) {
+            throw error;
+          }
         }
 
-        insertError = error;
-        if (!isBackendCompatibilityError(error)) {
-          throw error;
+        if (!insertError) {
+          break;
         }
       }
 
