@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { getPublicErrorMessage } from "@/lib/publicErrors";
+import { ensureCurrentUserRowBestEffort } from "@/lib/userBootstrap";
 import { Loader2 } from "lucide-react";
 import logoAgroX from "@/assets/agro-x-logo.png";
-
 
 const Login = () => {
   const { t } = useLanguage();
@@ -44,12 +44,13 @@ const Login = () => {
         if (error) throw error;
 
         // Ensure base rows exist for new users (roles/compliance)
-        const [{ error: e1 }, { error: e2 }] = await Promise.all([
-          supabase.rpc('ensure_current_user_row'),
-          supabase.rpc('ensure_user_compliance_rows'),
-        ]);
-        if (e1) throw e1;
-        if (e2) throw e2;
+        await ensureCurrentUserRowBestEffort();
+
+        const { error: complianceError } = await supabase.rpc('ensure_user_compliance_rows');
+        if (complianceError) {
+          // Optional bootstrap RPC: do not block login when unavailable/restricted
+          console.warn('ensure_user_compliance_rows skipped', complianceError);
+        }
 
         toast({
           title: t('success'),
