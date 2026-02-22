@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "validate:all": "npm run test -- --run && npm run build --silent",
+    "validate:stack": "bash scripts/validate_stack_connections.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
